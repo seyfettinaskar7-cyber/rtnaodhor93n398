@@ -25,7 +25,7 @@ def find_m3u8_with_browser(page_url):
     page.on('request', handle_request)
 
     try:
-      print(
+      #print(
           'Siteye bağlanılıyor, 403 engeli aşılıyor ve ekranın gelmesi'
           ' bekleniyor...'
       )
