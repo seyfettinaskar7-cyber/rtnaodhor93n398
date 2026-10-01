@@ -3,22 +3,21 @@ import requests
 
 
 def find_m3u8_in_source(page_url):
-  # Daha güncel ve gerçekçi bir masaüstü tarayıcı başlığı
   headers = {
       'User-Agent': (
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,'
           ' like Gecko) Chrome/122.0.0.0 Safari/537.36'
       ),
       'Referer': 'https://www.stream4free.tv/',
-      'Accept': (
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8'
-      ),
-      'Accept-Language': 'en-US,en;q=0.9,tr;q=0.8',
   }
 
   try:
+    # timeout eklemek, sitenin yanıt vermediği durumlarda kodun sonsuza kadar donmasını engeller
     response = requests.get(page_url, headers=headers, timeout=10)
-    response.raise_for_status()
+
+    # DİKKAT: raise_for_status() kaldırıldı.
+    # Böylece 403 gelse bile kod hata fırlatıp durmaz, içeriği okumaya çalışır.
+
     html_content = response.text
 
     # .m3u8 uzantılı linkleri yakalamak için Regex kalıbı
@@ -28,10 +27,9 @@ def find_m3u8_in_source(page_url):
     if matches:
       return list(set(matches))
 
-  except requests.exceptions.HTTPError as err:
-    print(f'HTTP Hatası: {err} (Site bot koruması uyguluyor olabilir)')
-  except Exception as e:
-    print(f'Bağlantı hatası: {e}')
+  except requests.exceptions.RequestException as e:
+    # Ağ tabanlı tüm hataları burada yakalayıp sessizce geçebilir veya yazdırabilirsiniz
+    print(f'Uyarı: İstek sırasında bir sorun oluştu ama devam ediliyor: {e}')
 
   return []
 
@@ -45,4 +43,4 @@ if links:
   for link in links:
     print(link)
 else:
-  print('Kaynak kodunda m3u8 bulunamadı.')
+  print('Kaynak kodunda m3u8 bulunamadı veya erişilemedi.')
