@@ -39,5 +39,5 @@ jobs:
 
     - name: Değişiklikleri Kaydet ve Gönder (Commit & Push)
       run: |
-        git add streams/
+        git add fr/
         git diff --quiet && git diff --cached --quiet || (git commit -m "update lcp link $(date +'%Y-%m-%d %H:%M:%S')" && git push)
