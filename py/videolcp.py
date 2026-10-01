@@ -25,10 +25,6 @@ def find_m3u8_with_browser(page_url):
     page.on('request', handle_request)
 
     try:
-      #print(
-          'Siteye bağlanılıyor, 403 engeli aşılıyor ve ekranın gelmesi'
-          ' bekleniyor...'
-      )
       page.goto(page_url, timeout=60000, wait_until='networkidle')
       page.wait_for_timeout(5000)
     except Exception as e:
