@@ -41,6 +41,7 @@ links = find_m3u8_with_browser(target_url)
 if links:
   print('#EXTM3U')
   print('#EXT-X-VERSION:3')
+  print('#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720')
   for link in links:
     print(link)
 else:
