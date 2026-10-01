@@ -1,3 +1,4 @@
 #EXTM3U
 #EXT-X-VERSION:3
-https://sv7.data-stream.top/637ca165c754dcd40771688c787fa9a04ba57e0f107ace7e0cac8dc84b16e294/hls/lachainep.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720
+https://sv7.data-stream.top/e4767b73792aa943efdd725e0b7a2ed647088cc8647081f41f273fabb0344f2c/hls/lachainep.m3u8
