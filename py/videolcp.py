@@ -12,7 +12,8 @@ def find_m3u8_in_source(page_url):
   }
 
   try:
-    response = requests.get(page_url, headers=headers, timeout=10)
+    response = requests.get(page_url, headers=headers)
+    response.raise_for_status()
     html_content = response.text
 
     # .m3u8 uzantılı linkleri yakalamak için Regex kalıbı
