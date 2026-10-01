@@ -1,46 +1,61 @@
-import re
-import requests
+from playwright.sync_api import sync_playwright
 
 
-def find_m3u8_in_source(page_url):
-  headers = {
-      'User-Agent': (
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,'
-          ' like Gecko) Chrome/122.0.0.0 Safari/537.36'
-      ),
-      'Referer': 'https://www.stream4free.tv/',
-  }
+def find_m3u8_with_browser(page_url):
+  found_links = set()
 
-  try:
-    # timeout eklemek, sitenin yanıt vermediği durumlarda kodun sonsuza kadar donmasını engeller
-    response = requests.get(page_url, headers=headers, timeout=10)
+  with sync_playwright() as p:
+    # Tarayıcırı başlatıyoruz (headless=False yaparsanız tarayıcının ekranda açıldığını görürsünüz)
+    browser = p.chromium.launch(headless=True)
 
-    # DİKKAT: raise_for_status() kaldırıldı.
-    # Böylece 403 gelse bile kod hata fırlatıp durmaz, içeriği okumaya çalışır.
+    # Gerçek bir kullanıcı gibi görünmek için context ve user-agent ayarlıyoruz
+    context = browser.new_context(
+        user_agent=(
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,'
+            ' like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        ),
+        referer='https://www.stream4free.tv/',
+    )
 
-    html_content = response.text
+    page = context.new_page()
 
-    # .m3u8 uzantılı linkleri yakalamak için Regex kalıbı
-    pattern = r'https?://[^\s\'"]+?\.m3u8[^\s\'"]*'
-    matches = re.findall(pattern, html_content)
+    # Ağ trafiğini (Network requests) dinle: Sayfa yüklenirken geçen her isteği yakala
+    def handle_request(request):
+      if '.m3u8' in request.url:
+        found_links.add(request.url)
 
-    if matches:
-      return list(set(matches))
+    page.on('request', handle_request)
 
-  except requests.exceptions.RequestException as e:
-    # Ağ tabanlı tüm hataları burada yakalayıp sessizce geçebilir veya yazdırabilirsiniz
-    print(f'Uyarı: İstek sırasında bir sorun oluştu ama devam ediliyor: {e}')
+    try:
+      print(
+          'Siteye bağlanılıyor, 403 engeli aşılıyor ve ekranın gelmesi'
+          ' bekleniyor...'
+      )
+      # Sayfaya git ve ağ trafiğinin oturması için oynatıcının yüklenmesini bekle
+      page.goto(page_url, timeout=60000, wait_until='networkidle')
 
-  return []
+      # Oynatıcı biraz geç tetikleniyorsa ekstra birkaç saniye (örn: 5 saniye) bekleyebiliriz
+      page.wait_for_timeout(5000)
+
+    except Exception as e:
+      print(f'Yüklenme sırasında hata oluştu ama devam ediliyor: {e}')
+
+    browser.close()
+
+  return list(found_links)
 
 
 target_url = 'https://www.stream4free.tv/public-senat'
-links = find_m3u8_in_source(target_url)
+links = find_m3u8_with_browser(target_url)
 
 if links:
+  print('\nBulunan M3U8 Bağlantıları:')
   print('#EXTM3U')
   print('#EXT-X-VERSION:3')
   for link in links:
     print(link)
 else:
-  print('Kaynak kodunda m3u8 bulunamadı veya erişilemedi.')
+  print(
+      'Yine de m3u8 bulunamadı. Site çok katı bir Cloudflare korumasına sahip'
+      ' olabilir.'
+  )
